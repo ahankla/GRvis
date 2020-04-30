@@ -110,12 +110,12 @@ class kerrschild():
         # usq is \tilde u^i\tilde u_i
         # Note in the kerr-schild metric, g12 = g23 = 0,
         # in which case gamma matches MA's kerrmetric.py
-        usq = self.g11*uu1*uu1 + 2.0*self.g12*uu1*uu2 + 2.0*self.g13*uu1*uu3
-        + self.g22*uu2*uu2 + 2.0*self.g23*uu2*uu3
-        + self.g33*uu3*uu3
+        self.usq = self.g11*uu1*uu1 + 2.0*self.g12*uu1*uu2 + 2.0*self.g13*uu1*uu3 \
+            + self.g22*uu2*uu2 + 2.0*self.g23*uu2*uu3\
+            + self.g33*uu3*uu3
 
         # Gamma is \sqrt{1.0 + u^2}
-        gamma = np.sqrt(1.0 + usq)
+        gamma = np.sqrt(1.0 + self.usq)
         return gamma
 
 
@@ -145,7 +145,7 @@ class kerrschild():
     def get_proj_bfield_from_outputB_fourV(self, four_velocity, output_mag_field):
         """
         Athena++ outputs the 0th components of the maxwell tensor.
-        But we want the projected magnetic field for calculating magnetic pressure, etc. 
+        But we want the projected magnetic field for calculating magnetic pressure, etc.
         Fortunately we see how to back-calculate this in gr_torus's method
         UserWorkInLoop() (lines 1304 - 1319).
 

@@ -52,13 +52,6 @@ class fourvector():
         self.u2=vel2
         self.u3=vel3
         ks=kerr(r,theta)
-        print("shapes: ")
-        print(self.v1.shape)
-        self.test = self.v1*self.v1*ks.g11
-        self.comp2 = self.v1*self.u3*ks.g13
-        print((self.v1*self.v1).shape)
-        print(ks.g11.shape)
-        print((self.v1*self.v1*ks.g11).shape)
         self.usq=(self.v1*self.v1*ks.g11)+2*(self.v1*self.u3*ks.g13)+(ks.g22*self.u2*self.u2)+(self.u3*self.u3*ks.g33)
         self.gamma=np.sqrt(1+((self.v1*self.v1*ks.g11)+2*(self.v1*self.u3*ks.g13)+(ks.g22*self.u2*self.u2)+(self.u3*self.u3*ks.g33)))
         self.u0=self.gamma/ks.alpha

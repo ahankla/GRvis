@@ -5,7 +5,7 @@ import argparse
 import warnings
 import numpy as np
 import sys
-sys.path.append('../modules/')
+sys.path.append('../')
 from raw_data_utils import *
 # import new_athena_read as read
 from kerrmetric import kerr,fourvector
@@ -27,7 +27,9 @@ def main(**kwargs):
     quantities=['rho','vel1','vel2','vel3','Bcc1','Bcc2','Bcc3']
     # p=read.athdf(fi,quantities=quantities,x1_min=kwargs['radius'], x1_max=kwargs['radius'])
     p=read_athdf(fi,quantities=quantities,x1_min=kwargs['radius'], x1_max=kwargs['radius'])
+    print(p['vel1'].shape)
     r=p['x1v']
+    print(r.shape)
     theta=p['x2v']
     phi=p['x3v']
     R=p['x1f']
@@ -36,8 +38,8 @@ def main(**kwargs):
     nx3=len(phi)
     dp=(2*np.pi/nx3)*np.ones(nx3)
     dt=(np.pi/nx2)*np.ones(nx2)
-    Dp=dp.reshape(nx3,1,1)
-    Dt=dt.reshape(1,nx2,1)
+    Dp=dp.reshape(nx3,1, 1)
+    Dt=dt.reshape(1,nx2, 1)
     dr=np.ones(nx1)
     for i in range(nx1):
         dr[i]=R[i+1]-R[i]
@@ -45,6 +47,7 @@ def main(**kwargs):
     rho=p['rho']
     ks=kerr(r,theta)
     f=fourvector(r,theta,p['vel1'],p['vel2'],p['vel3'],p['Bcc1'],p['Bcc2'],p['Bcc3'])
+    print(f.gamma.shape)
     print("gamma")
     print(np.max(f.gamma))
     k=Dt*Dp*ks.g

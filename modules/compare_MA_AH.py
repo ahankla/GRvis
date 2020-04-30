@@ -2,6 +2,7 @@ from metric_utils import *
 from raw_data_utils import *
 import sys
 sys.path.append('../scripts/')
+sys.path.append('m_athay/')
 from kerrmetric import fourvector, kerr
 
 
@@ -22,21 +23,22 @@ Bcc1 = raw_data["Bcc1"]
 Bcc2 = raw_data["Bcc2"]
 Bcc3 = raw_data["Bcc3"]
 
-metric_AH = kerrschild(x1v, x2v, x3v)
-metric_MA = kerr(x1v, x2v)
+r10ind = np.argmin(np.abs(x1v - 10.0))
+x1vr = x1v[r10ind].reshape(1,)
 
+metric_AH = kerrschild(x1vr, x2v, x3v)
+metric_MA = kerr(x1vr, x2v)
+nx3 = x3v.size
+nx2 = x2v.size
+nx1 = x1v.size
+print(x1v.size)
+print(x2v.size)
 print("Compare metric coefficients")
 print((metric_AH.g00[0, :, :] == metric_MA.g00).all())
 print((metric_AH.g10[0, :, :] == metric_MA.g10).all())
 print((metric_AH.g03[0, :, :] == metric_MA.g03).all())
 print((metric_AH.g11[0, :, :] == metric_MA.g11).all())
 print((metric_AH.g22[0, :, :] == metric_MA.g22).all())
-
-
-print("The falses")
-print((metric_AH.g33[0, :, :] == metric_MA.g33).all())
-print((metric_AH.g13[0, :, :] == metric_MA.g13).all())
-print("With allclose: ")
 print(np.allclose(metric_AH.g13[0, :, :], metric_MA.g13))
 print(np.allclose(metric_AH.g33[0, :, :], metric_MA.g33))
 
@@ -52,26 +54,23 @@ print(np.allclose(metric_AH.G31[0, :, :], metric_MA.G31))
 print(np.allclose(metric_AH.G33[0, :, :], metric_MA.G33))
 
 print("Compare gamma (with allclose)")
-gamma_AH = metric_AH.get_normal_frame_gamma((vel1, vel2, vel3))
-fourvec_MA = fourvector(x1v, x2v, vel1, vel2, vel3, Bcc1, Bcc2, Bcc3)
-print(np.allclose(gamma_AH[0, :, :], fourvec_MA.gamma))
+print(vel1.shape)
+vel1r = vel1[:, :, r10ind].reshape(nx3, nx2, 1)
+vel2r = vel2[:, :, r10ind].reshape(nx3, nx2, 1)
+vel3r = vel3[:, :, r10ind].reshape(nx3, nx2, 1)
+gamma_AH = metric_AH.get_normal_frame_gamma((vel1r, vel2r, vel3r))
+# fourvec_MA = fourvector(x1v, x2v, vel1, vel2, vel3, Bcc1, Bcc2, Bcc3)
+fourvec_MA = fourvector(x1vr, x2v, vel1r, vel2r, vel3r, Bcc1, Bcc2, Bcc3)
+# print("Is first term the same?")
+# print(np.allclose(metric_AH.firstterm, fourvec_MA.firstterm))
+# print("Is second term the same?")
+# print(np.allclose(metric_AH.secondterm, fourvec_MA.secondterm))
+# print("Is third term the same?")
+# print(np.allclose(metric_AH.thirdterm, fourvec_MA.thirdterm))
+# print("Is fourth term the same?")
+# print(np.allclose(metric_AH.fourthterm, fourvec_MA.fourthterm))
+print("Is usquared the same?")
 print(np.allclose(metric_AH.usq, fourvec_MA.usq))
-print("AH usq max: {}".format(np.max(metric_AH.usq)))
-print("MA usq max: {}".format(np.max(fourvec_MA.usq)))
-print(np.allclose(metric_AH.test, fourvec_MA.test))
-print(np.allclose(metric_AH.uu1, fourvec_MA.v1))
-print(np.allclose(metric_AH.uu2, fourvec_MA.u2))
-print(np.allclose(metric_AH.uu3, fourvec_MA.u3))
-
-print(metric_AH.elementwise.shape)
-print(metric_AH.elementwise2.shape)
-print((metric_AH.elementwise2 == metric_AH.elementwise).all())
-print((metric_AH.elementwise3 == metric_AH.elementwise).all())
-print(np.allclose(metric_AH.elementwise2, fourvec_MA.test))
-print(np.allclose(metric_AH.comp2, fourvec_MA.comp2))
-print(np.allclose(metric_AH.test2, fourvec_MA.test))
-
-
-print(np.allclose(metric_AH.elementwise3, metric_AH.elementwise4))
-print(np.allclose(metric_AH.elementwise3, metric_AH.elementwise5))
-print(np.allclose(metric_AH.usq_MA, fourvec_MA.usq))
+print(np.allclose(gamma_AH, fourvec_MA.gamma))
+# print("AH usq max: {}".format(np.max(metric_AH.usq)))
+# print("MA usq max: {}".format(np.max(fourvec_MA.usq)))
