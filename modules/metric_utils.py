@@ -49,10 +49,9 @@ class kerrschild():
         # wiki claims g = -1.0 everywhere...???
         self.jacobian = (r2 + a2*cos2theta) * sintheta
 
-        # Metric and inverse metric components
+        # Metric components: g_{\mu\nu}
         # from Athena++ src/coordinates/kerr-schild.cpp
         # (LowerVectorCell, lines 1804 - 1819) for the lower g_{\mu\nu}
-        # and from (RaiseVectorCell, lines 1758 - 1773) for the raised g^{\mu\nu}
         self.g00 = -(1.0-np.divide(2.0*M*r_vals, Sigma))
         self.g10 = np.divide(2.0*M*r_vals, Sigma)
         self.g20 = 0.0
@@ -73,6 +72,9 @@ class kerrschild():
         self.g31 = self.g13
         self.g32 = self.g23
 
+        # Inverse metric: g^{\mu\nu}
+        # from Athena++ src/coordinates/kerr-schild.cpp
+        # from (RaiseVectorCell, lines 1758 - 1773)
         self.G00 = -(1.0 + np.divide(2.0*M*r_vals, Sigma))
         self.G01 = np.divide(2.0*M*r_vals, Sigma)
         self.G02 = 0.0
@@ -157,10 +159,16 @@ class kerrschild():
         (bb1, bb2, bb3) = output_mag_field
         # Note in the Kerr-schild metric, g12 = g23 = 0
         # XX matches MA?
-        b0 = self.g01*u0*bb1 + self.g02*u0*bb2 + self.g03*u0*bb3
-        + self.g11*u1*bb1 + self.g12*u1*bb2 + self.g13*u1*bb3
-        + self.g12*u2*bb1 + self.g22*u2*bb2 + self.g23*u2*bb3
-        + self.g13*u3*bb1 + self.g23*u3*bb2 + self.g33*u3*bb3
+        lowered_four_velocity = self.lower_fourvec_index(four_velocity)
+        (u_0, u_1, u_2, u_3) = lowered_four_velocity
+
+        b0 = bb1*u_1 + bb2*u_2 + bb3*u_3
+        # I have checked that the above and below formulae
+        # give the same values of b0
+        # b0 = self.g01*u0*bb1 + self.g02*u0*bb2 + self.g03*u0*bb3\
+            # + self.g11*u1*bb1 + self.g12*u1*bb2 + self.g13*u1*bb3\
+            # + self.g12*u2*bb1 + self.g22*u2*bb2 + self.g23*u2*bb3\
+            # + self.g13*u3*bb1 + self.g23*u3*bb2 + self.g33*u3*bb3
         b1 = (bb1 + b0 * u1)/u0
         b2 = (bb2 + b0 * u2)/u0
         b3 = (bb3 + b0 * u3)/u0
@@ -168,13 +176,25 @@ class kerrschild():
         return (b0, b1, b2, b3)
 
     def get_benergy_from_projB(self, projected_b):
+        # Note that benergy is pmag
         (B0, B1, B2, B3) = projected_b
         (b0, b1, b2, b3) = self.lower_fourvec_index(projected_b)
         b_sq = B0*b0 + B1*b1 * B2*b2 + B3*b3
         return b_sq/2.0
 
+    def get_gas_enthalpy_from_rhoPG(self, density, press, Gamma=13.0/9.0):
+        # Here density and press are the direct Athena++ outputs
+        # Gamma is the adiabatic index, which for our sims
+        # defaults to 1.444444... = 13/9
+        w_gas = density + Gamma/(Gamma - 1.0)*press
+        return w_gas
 
-    def lower_fourvec_index(four_vector):
+    def get_mag_enthalpy_from_pmag(self, pmag):
+        # Note that pmag = b^2/2 = benergy
+        w_mag = 2.0*pmag
+        return w_mag
+
+    def lower_fourvec_index(self, four_vector):
         (A0, A1, A2, A3) = four_vector
         a0 = self.g00*A0 + self.g01*A1 + self.g02*A2 + self.g03*A3
         a1 = self.g10*A0 + self.g11*A1 + self.g12*A2 + self.g13*A3
@@ -182,6 +202,15 @@ class kerrschild():
         a3 = self.g30*A0 + self.g31*A1 + self.g32*A2 + self.g33*A3
 
         return (a0, a1, a2, a3)
+
+    def raise_fourvec_index(four_vector):
+        (a0, a1, a2, a3) = four_vector
+        A0 = self.G00*a0 + self.G01*a1 + self.G02*a2 + self.G03*a3
+        A1 = self.G10*a0 + self.G11*a1 + self.G12*a2 + self.G13*a3
+        A2 = self.G20*a0 + self.G21*a1 + self.G22*a2 + self.G23*a3
+        A3 = self.G30*a0 + self.G31*a1 + self.G32*a2 + self.G33*a3
+
+        return (A0, A1, A2, A3)
 
 
 # From here down is directly copied/pasted from MA's kerrmetric.py.
