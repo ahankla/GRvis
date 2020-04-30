@@ -61,27 +61,27 @@ def main(config, specs, raw_data_path, reduced_data_path, times, **kwargs):
             coords = (x1v, x2v, x3v)
 
         four_velocity = metric.get_four_velocity_from_output(out_vel)
-        mass_flux = calculate_mass_flux((raw_data["rho"], four_velocity[1], coords))
+        mass_flux_over_r = calculate_mass_flux_over_radial_shells((raw_data["rho"], four_velocity[1], coords))
 
-        reduced_data_fp = reduced_data_path + "mass_flux_t{:05}.txt".format(time)
-        total_mass_flux = np.trapz(mass_flux, x=raw_data["x1v"])
+        reduced_data_fp = reduced_data_path + "mass_flux_over_r_at_t{:05}.txt".format(time)
+        total_mass_flux = np.trapz(mass_flux_over_r, x=raw_data["x1v"])
         print(total_mass_flux)
 
         # for comparison to MA's script
         # index location of r = 10.0
         rind10 = np.argmin(np.abs(x1v - 10.0))
-        print(mass_flux[rind10])
+        print(mass_flux_over_r[rind10])
 
         if write_to_file:
             x1vstr = ', '.join(map(str, raw_data["x1v"]))
-            np.savetxt(reduced_data_fp, mass_flux, header=x1vstr)
+            np.savetxt(reduced_data_fp, mass_flux_over_r, header=x1vstr)
 
 
         label = "$t={:.2f}~GM/c^3$".format(sim_time)
 
         # ----- Now the actual plotting ------
         # Remember mdot = - mass flux
-        plt.plot(raw_data["x1v"], -1.0*mass_flux, marker="o", markersize=3, label=label)
+        plt.plot(raw_data["x1v"], -1.0*mass_flux_over_r, marker="o", markersize=3, label=label)
 
     plt.xlabel(r"$r/r_g$")
     plt.ylabel(r"$\dot M$")
