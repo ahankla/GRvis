@@ -144,15 +144,12 @@ class kerrschild():
 
         return (u0, u1, u2, u3)
 
-    def get_proj_bfield_from_outputB_fourV(self, four_velocity, output_mag_field):
+    def get_proj_bfield_from_outputB_fourV(self, output_mag_field, four_velocity):
         """
         Athena++ outputs the 0th components of the maxwell tensor.
         But we want the projected magnetic field for calculating magnetic pressure, etc.
         Fortunately we see how to back-calculate this in gr_torus's method
         UserWorkInLoop() (lines 1304 - 1319).
-
-        TO DO:
-        - reconcile with MA's version
         """
 
         (u0, u1, u2, u3) = four_velocity
@@ -193,6 +190,20 @@ class kerrschild():
         # Note that pmag = b^2/2 = benergy
         w_mag = 2.0*pmag
         return w_mag
+
+    def get_radial_maxwell_tensor(self, four_vel, proj_b):
+        """
+        Calculate the upper components of the maxwell tensor T^{\mu\nu}, \mu = 1 (r).
+        Don't calculate all components, just to conserve memory.
+        four_vel is the output of get_four_velocity_from_output.
+        proj_b is the output of get_proj_bfield_from_outputB_fourV.
+        """
+        pmag = self.get_benergy_from_projB(proj_b)
+        self.T10 = 2.0*pmag*four_vel[1]*four_vel[0] + pmag*self.G10 - proj_b[1]*proj_b[0]
+        self.T11 = 2.0*pmag*four_vel[1]*four_vel[1] + pmag*self.G11 - proj_b[1]*proj_b[1]
+        self.T12 = 2.0*pmag*four_vel[1]*four_vel[2] + pmag*self.G12 - proj_b[1]*proj_b[2]
+        self.T13 = 2.0*pmag*four_vel[1]*four_vel[3] + pmag*self.G13 - proj_b[1]*proj_b[3]
+        return
 
     def lower_fourvec_index(self, four_vector):
         (A0, A1, A2, A3) = four_vector

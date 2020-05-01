@@ -88,6 +88,7 @@ def main(config, specs, raw_data_path, reduced_data_path, times, **kwargs):
     titstr = "Mass flux through each radial shell"
     plt.legend()
     plt.title(titstr)
+    plt.tight_layout()
     plt.show()
 
 
