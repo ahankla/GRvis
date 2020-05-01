@@ -23,14 +23,11 @@ def calculate_quality_factor_phi(filename, x1_min=None, x1_max=None, x2_min=None
 
 def calculate_Trphi(raw_data, metric=None):
     """
-    if write_to_file, will save data to .hdf5 file.
     returns T^r_phi = T^1_3 = T^10g_03 + T^11 g_13 + T^13 g_33
     since g_23 = 0 in the kerr-schild metric.
 
-    It's easier to give the filename than the raw_data because
-    this needs *every* output variable.
-    Filename should include the path.
-
+    T^r_phi is defined in White, Quataert, and Gammie 2020 Eq. 9
+    and is related to the angular momentum flux.
     """
     (four_vel, proj_b, coords) = raw_data
     (x1v, x2v, x3v) = coords
@@ -45,6 +42,26 @@ def calculate_Trphi(raw_data, metric=None):
 
     return Tr_phi
 
+def calculate_Trt(raw_data, metric=None):
+    """
+    returns T^r_t = T^1_0 = T^10g_00 + T^11 g_10 + T^13 g_30
+    since g_20 = 0 in the kerr-schild metric.
+
+    T^r_t is defined in White, Quataert, and Gammie 2020 Eq. 7
+    and is related to the energy flux.
+    """
+    (four_vel, proj_b, coords) = raw_data
+    (x1v, x2v, x3v) = coords
+
+    if metric is None:
+        metric = kerrschild(x1v, x2v, x3v)
+
+    # calculate T^{1\mu}
+    metric.get_radial_maxwell_tensor(four_vel, proj_b)
+
+    Tr_t = metric.T10*metric.g00 + metric.T11*metric.g10 + metric.T13*metric.g30
+
+    return Tr_t
 
 def calculate_mass_flux_over_radial_shells(raw_data, metric=None):
     """
